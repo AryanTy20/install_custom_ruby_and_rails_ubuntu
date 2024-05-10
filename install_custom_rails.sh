@@ -27,13 +27,42 @@ esac
 echo -e "\n"
 
 # Install rbenv and ruby-build
-sudo apt update
-sudo apt install wget curl git build-essential -y
-git clone https://github.com/rbenv/rbenv.git "$USER_HOME/.rbenv"
-echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> "$config_file"
-echo 'eval "$(rbenv init -)"' >> "$config_file"
-git clone https://github.com/rbenv/ruby-build.git "$USER_HOME/.rbenv/plugins/ruby-build"
-echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> "$config_file"
+# Check if ~/.rbenv directory exists
+if [ -d "$USER_HOME/.rbenv" ]; then
+    read -p "The directory '~/.rbenv' already exists. Do you want to remove it and reinstall? (y/n): " remove_rbenv
+    if [[ $remove_rbenv == [yY] ]]; then
+        rm -rf "$USER_HOME/.rbenv"
+    else
+        echo "Skipping rbenv installation."
+        skip_rbenv=true
+    fi
+fi
+
+# Check if ~/.rbenv/plugins/ruby-build directory exists
+if [ -d "$USER_HOME/.rbenv/plugins/ruby-build" ]; then
+    read -p "The directory '~/.rbenv/plugins/ruby-build' already exists. Do you want to remove it and reinstall? (y/n): " remove_ruby_build
+    if [[ $remove_ruby_build == [yY] ]]; then
+        rm -rf "$USER_HOME/.rbenv/plugins/ruby-build"
+    else
+        echo "Skipping ruby-build installation."
+        skip_ruby_build=true
+    fi
+fi
+
+# Install rbenv and ruby-build if not skipped
+if [[ ! $skip_rbenv ]]; then
+    sudo apt update
+    sudo apt install wget curl git build-essential -y
+    git clone https://github.com/rbenv/rbenv.git "$USER_HOME/.rbenv"
+    echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> "$config_file"
+    echo 'eval "$(rbenv init -)"' >> "$config_file"
+fi
+
+if [[ ! $skip_ruby_build ]]; then
+    git clone https://github.com/rbenv/ruby-build.git "$USER_HOME/.rbenv/plugins/ruby-build"
+    echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> "$config_file"
+fi
+
 source "$config_file"
 
 # Install Ruby
